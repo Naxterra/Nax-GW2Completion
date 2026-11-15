@@ -1,0 +1,33 @@
+{
+  "name": "Nax Completion",
+  "version": "0.4.0",
+  "namespace": "nax.completion",
+  "package": "NaxCompletion.dll",
+  "manifest_version": 1,
+  "description": "Points an arrow at the nearest map completion point or jumping puzzle you have not done yet, keeps a per-character checklist, recognises points the game map already shows as done, and guides you through jumping puzzles along routes you record.",
+  "dependencies": {
+    "bh.blishhud": ">=1.0.0"
+  },
+  "api_permissions": {
+    "account": {
+      "optional": true,
+      "details": "Needed with progression to tick jumping puzzles from your account's achievements."
+    },
+    "characters": {
+      "optional": true,
+      "details": "Needed with progression to tick hero challenges from the API, if ArenaNet fixes that endpoint."
+    },
+    "progression": {
+      "optional": true,
+      "details": "Needed for jumping puzzle achievements and hero challenges from the API."
+    }
+  },
+  "contributors": [
+    {
+      "name": "Naxterra"
+    }
+  ],
+  "directories": [
+    "nax-completion"
+  ]
+}

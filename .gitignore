@@ -1,0 +1,9 @@
+# Build output and caches (build.ps1 keeps packages and dotnet state in .build-cache)
+.build-cache/
+bin/
+obj/
+dist/
+.vs/
+*.user
+# Stray capture, not part of the module
+nul.png

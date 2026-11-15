@@ -1,0 +1,589 @@
+{
+ "source": "Puzzle names and nearest waypoints from the Guild Wars 2 Wiki list of jumping puzzles (wiki.guildwars2.com/wiki/Jumping_puzzle). Map ids and waypoint coordinates from the official API (/v2/continents/1/floors/1). Fetched 2026-10-21. Achievement ids from /v2/achievements (categories Jumping Puzzles and New Hero Jump Start), matched by name, 2026-10-25.",
+ "puzzles": [
+  {
+   "key": "jp:demongrub-pits",
+   "name": "Demongrub Pits",
+   "map": 15,
+   "waypoint": "Godslost Waypoint",
+   "x": 45274.7,
+   "y": 29755,
+   "achievement": 144
+  },
+  {
+   "key": "jp:fawcett-s-bounty",
+   "name": "Fawcett's Bounty",
+   "map": 17,
+   "waypoint": "Arcallion Waypoint",
+   "x": 47559.2,
+   "y": 26139.4,
+   "achievement": 199
+  },
+  {
+   "key": "jp:loreclaw-expanse",
+   "name": "Loreclaw Expanse",
+   "map": 19,
+   "waypoint": "Loreclaw Waypoint",
+   "x": 61161.7,
+   "y": 31717.8,
+   "achievement": 149
+  },
+  {
+   "key": "jp:behem-gauntlet",
+   "name": "Behem Gauntlet",
+   "map": 20,
+   "waypoint": "Behem Waypoint",
+   "x": 63393.2,
+   "y": 31557,
+   "achievement": 156
+  },
+  {
+   "key": "jp:craze-s-folly",
+   "name": "Craze's Folly",
+   "map": 20,
+   "waypoint": "Terra Carorunda Waypoint",
+   "x": 63481,
+   "y": 29114.8,
+   "achievement": 157
+  },
+  {
+   "key": "jp:branded-mine",
+   "name": "Branded Mine",
+   "map": 21,
+   "waypoint": "Tenaebron Waypoint",
+   "x": 62073.2,
+   "y": 32995.4,
+   "achievement": 200
+  },
+  {
+   "key": "jp:pig-iron-quarry",
+   "name": "Pig Iron Quarry",
+   "map": 22,
+   "waypoint": "Severed Breach Waypoint",
+   "x": 58629.5,
+   "y": 27336.5,
+   "achievement": 201
+  },
+  {
+   "key": "jp:the-collapsed-observatory",
+   "name": "The Collapsed Observatory",
+   "map": 23,
+   "waypoint": "Cereboth Waypoint",
+   "x": 45528.3,
+   "y": 31950.6,
+   "achievement": 151
+  },
+  {
+   "key": "jp:not-so-secret",
+   "name": "Not So Secret",
+   "map": 24,
+   "waypoint": "Broadhollow Waypoint",
+   "x": 48027,
+   "y": 30390,
+   "achievement": 648
+  },
+  {
+   "key": "jp:swashbuckler-s-cove",
+   "name": "Swashbuckler's Cove",
+   "map": 24,
+   "waypoint": "Cornucopian Fields Waypoint",
+   "x": 48668.1,
+   "y": 30456,
+   "achievement": 196
+  },
+  {
+   "key": "jp:chaos-crystal-cavern",
+   "name": "Chaos Crystal Cavern",
+   "map": 25,
+   "waypoint": "Old Piken Ruins Waypoint",
+   "x": 60281.4,
+   "y": 29394.2,
+   "achievement": 205
+  },
+  {
+   "key": "jp:tribulation-caverns",
+   "name": "Tribulation Caverns",
+   "map": 26,
+   "waypoint": "Sorrow's Embrace Waypoint",
+   "x": 52536.4,
+   "y": 34075.8,
+   "achievement": 369
+  },
+  {
+   "key": "jp:tribulation-rift-scaffolding",
+   "name": "Tribulation Rift Scaffolding",
+   "map": 26,
+   "waypoint": "Sorrow's Embrace Waypoint",
+   "x": 52536.4,
+   "y": 34075.8,
+   "achievement": 195
+  },
+  {
+   "key": "jp:griffonrook-run",
+   "name": "Griffonrook Run",
+   "map": 27,
+   "waypoint": "False Lake Waypoint",
+   "x": 50784.6,
+   "y": 33228.2,
+   "achievement": 193
+  },
+  {
+   "key": "jp:shaman-s-rookery",
+   "name": "Shaman's Rookery",
+   "map": 28,
+   "waypoint": "Zelechor Hot Springs Waypoint",
+   "x": 54895.2,
+   "y": 29732.1,
+   "achievement": 142
+  },
+  {
+   "key": "jp:coddler-s-cove",
+   "name": "Coddler's Cove",
+   "map": 29,
+   "waypoint": "Okarinoo Waypoint",
+   "x": 53427.3,
+   "y": 37497.4,
+   "achievement": 368
+  },
+  {
+   "key": "jp:only-zuhl",
+   "name": "Only Zuhl",
+   "map": 29,
+   "waypoint": "Foundation 86 Waypoint",
+   "x": 53844.9,
+   "y": 35324.5,
+   "achievement": 207
+  },
+  {
+   "key": "jp:shattered-ice-ruins",
+   "name": "Shattered Ice Ruins",
+   "map": 30,
+   "waypoint": "Ice Floe Waypoint",
+   "x": 54544.7,
+   "y": 25299.3,
+   "achievement": 194
+  },
+  {
+   "key": "jp:king-jalis-s-refuge",
+   "name": "King Jalis's Refuge",
+   "map": 31,
+   "waypoint": "Snowhawk Landing Waypoint",
+   "x": 53674.4,
+   "y": 28568.6,
+   "achievement": 148
+  },
+  {
+   "key": "jp:crimson-plateau",
+   "name": "Crimson Plateau",
+   "map": 32,
+   "waypoint": "Redreave Mill Waypoint",
+   "x": 58937.2,
+   "y": 29193.2,
+   "achievement": 154
+  },
+  {
+   "key": "jp:grendich-gamble",
+   "name": "Grendich Gamble",
+   "map": 32,
+   "waypoint": "Blasted Moors Waypoint",
+   "x": 57831,
+   "y": 28790.4,
+   "achievement": 147
+  },
+  {
+   "key": "jp:wall-breach-blitz",
+   "name": "Wall Breach Blitz",
+   "map": 32,
+   "waypoint": "Breached Wall Waypoint",
+   "x": 58484.2,
+   "y": 29675.7,
+   "achievement": 143
+  },
+  {
+   "key": "jp:dark-reverie",
+   "name": "Dark Reverie",
+   "map": 34,
+   "waypoint": "Spiral Waypoint",
+   "x": 43729.7,
+   "y": 35620.3,
+   "achievement": 172
+  },
+  {
+   "key": "jp:morgan-s-leap",
+   "name": "Morgan's Leap",
+   "map": 34,
+   "waypoint": "Spiral Waypoint",
+   "x": 43729.7,
+   "y": 35620.3,
+   "achievement": 161
+  },
+  {
+   "key": "jp:spekks-s-laboratory",
+   "name": "Spekks's Laboratory",
+   "map": 34,
+   "waypoint": "Gleaner's Cove Waypoint",
+   "x": 42534.7,
+   "y": 35459.8,
+   "achievement": 159
+  },
+  {
+   "key": "jp:spelunker-s-delve",
+   "name": "Spelunker's Delve",
+   "map": 34,
+   "waypoint": "Astorea Waypoint",
+   "x": 42723.9,
+   "y": 36217.2,
+   "achievement": 160
+  },
+  {
+   "key": "jp:goemm-s-lab",
+   "name": "Goemm's Lab",
+   "map": 35,
+   "waypoint": "Cuatl Waypoint",
+   "x": 41907.1,
+   "y": 35125.7,
+   "achievement": 155
+  },
+  {
+   "key": "jp:conundrum-cubed",
+   "name": "Conundrum Cubed",
+   "map": 39,
+   "waypoint": "Govoran Waypoint",
+   "x": 50706.2,
+   "y": 38116.2,
+   "achievement": 163
+  },
+  {
+   "key": "jp:hidden-garden",
+   "name": "Hidden Garden",
+   "map": 39,
+   "waypoint": "Criterion Waypoint",
+   "x": 51007.6,
+   "y": 38441.5,
+   "achievement": 367
+  },
+  {
+   "key": "jp:troll-s-revenge",
+   "name": "Troll's Revenge",
+   "map": 50,
+   "waypoint": "Fort Marriner Waypoint",
+   "x": 49457.3,
+   "y": 31700,
+   "achievement": 2126
+  },
+  {
+   "key": "jp:urmaug-s-secret",
+   "name": "Urmaug's Secret",
+   "map": 50,
+   "waypoint": "Guild Bluff Waypoint",
+   "x": 49927.1,
+   "y": 31138.4,
+   "achievement": 218
+  },
+  {
+   "key": "jp:weyandt-s-revenge",
+   "name": "Weyandt's Revenge",
+   "map": 50,
+   "waypoint": "Farshore Waypoint",
+   "x": 49957.1,
+   "y": 31690.5,
+   "achievement": 217
+  },
+  {
+   "key": "jp:vizier-s-tower",
+   "name": "Vizier's Tower",
+   "map": 51,
+   "waypoint": "Lone Post Waypoint",
+   "x": 48935.9,
+   "y": 40697.2,
+   "achievement": 202
+  },
+  {
+   "key": "jp:hexfoundry-unhinged",
+   "name": "Hexfoundry Unhinged",
+   "map": 53,
+   "waypoint": "Darkweather Waypoint",
+   "x": 50229.3,
+   "y": 38119.2,
+   "achievement": 366
+  },
+  {
+   "key": "jp:verarium-delves",
+   "name": "Verarium Delves",
+   "map": 53,
+   "waypoint": "Ocean's Gullet Waypoint",
+   "x": 48721.9,
+   "y": 36264.1
+  },
+  {
+   "key": "jp:buried-archives",
+   "name": "Buried Archives",
+   "map": 62,
+   "waypoint": "Shipwreck Rock Waypoint",
+   "x": 44616.1,
+   "y": 45441.1,
+   "achievement": 158
+  },
+  {
+   "key": "jp:antre-of-adjournment",
+   "name": "Antre of Adjournment",
+   "map": 65,
+   "waypoint": "Valley of Lyss Waypoint",
+   "x": 46178.6,
+   "y": 41237.6,
+   "achievement": 206
+  },
+  {
+   "key": "jp:scavenger-s-chasm",
+   "name": "Scavenger's Chasm",
+   "map": 65,
+   "waypoint": "Valley of Lyss Waypoint",
+   "x": 46178.6,
+   "y": 41237.6,
+   "achievement": 204
+  },
+  {
+   "key": "jp:professor-portmatt-s-lab",
+   "name": "Professor Portmatt's Lab",
+   "map": 73,
+   "waypoint": "Sorrowful Waypoint",
+   "x": 48753.2,
+   "y": 32780,
+   "achievement": 203
+  },
+  {
+   "key": "jp:skipping-stones",
+   "name": "Skipping Stones",
+   "map": 873,
+   "waypoint": "Lion Point Waypoint",
+   "x": 45546,
+   "y": 35647.4,
+   "achievement": 400
+  },
+  {
+   "key": "jp:under-new-management",
+   "name": "Under New Management",
+   "map": 873,
+   "waypoint": "Pearl Islet Waypoint",
+   "x": 46589.2,
+   "y": 36791.8,
+   "achievement": 401
+  },
+  {
+   "key": "jp:prospect-valley-crash-site",
+   "name": "Prospect Valley Crash Site",
+   "map": 988,
+   "waypoint": "Prosperity Waypoint",
+   "x": 37988.4,
+   "y": 32717.8
+  },
+  {
+   "key": "jp:retrospective-runaround",
+   "name": "Retrospective Runaround",
+   "map": 1015,
+   "waypoint": "Drydock Grotto Waypoint",
+   "x": 38233.6,
+   "y": 31107.6
+  },
+  {
+   "key": "jp:egg-bearer",
+   "name": "Egg Bearer",
+   "map": 1043,
+   "waypoint": "Forgotten City Waypoint",
+   "x": 34318.4,
+   "y": 33966.2
+  },
+  {
+   "key": "jp:highest-gear",
+   "name": "Highest Gear",
+   "map": 1043,
+   "waypoint": "Westwatch Waypoint",
+   "x": 33703.9,
+   "y": 33522.1
+  },
+  {
+   "key": "jp:disco-dancing-delver",
+   "name": "Disco Dancing Delver",
+   "map": 1045,
+   "waypoint": "Ogre Camp Waypoint",
+   "x": 36673.7,
+   "y": 35237.7
+  },
+  {
+   "key": "jp:master-mushroom-spelunker",
+   "name": "Master Mushroom Spelunker",
+   "map": 1045,
+   "waypoint": "Rata Novus Waypoint",
+   "x": 37716.8,
+   "y": 34709.8
+  },
+  {
+   "key": "jp:verdant-brink-insight-canopy-over-pact-encampment",
+   "name": "Verdant Brink Insight: Canopy Over Pact Encampment",
+   "map": 1052,
+   "waypoint": "Pact Encampment Waypoint",
+   "x": 35165.7,
+   "y": 31785.4
+  },
+  {
+   "key": "jp:skip-up-the-volcano",
+   "name": "Skip up the Volcano",
+   "map": 1175,
+   "waypoint": "Castaway Circus Waypoint",
+   "x": 38284.7,
+   "y": 46256.3
+  },
+  {
+   "key": "jp:searing-ascent",
+   "name": "Searing Ascent",
+   "map": 1195,
+   "waypoint": "Heathen's Hold Waypoint",
+   "x": 37310,
+   "y": 41714.3
+  },
+  {
+   "key": "jp:abaddon-s-ascent",
+   "name": "Abaddon's Ascent",
+   "map": 1203,
+   "waypoint": "Camp Reclamation Waypoint",
+   "x": 49392.5,
+   "y": 42605
+  },
+  {
+   "key": "jp:gauntlet-of-the-khan-ur",
+   "name": "Gauntlet of the Khan-Ur",
+   "map": 1330,
+   "waypoint": "Dalada Forest Waypoint",
+   "x": 61726.3,
+   "y": 18513.4
+  },
+  {
+   "key": "jp:wind-through-the-walls",
+   "name": "Wind through the Walls",
+   "map": 1438,
+   "waypoint": "Lutgardis Plaza Waypoint",
+   "x": 27869.7,
+   "y": 99381
+  },
+  {
+   "key": "jp:trials-of-the-tengu",
+   "name": "Trials of the Tengu",
+   "map": 1442,
+   "waypoint": "Monastery Waypoint",
+   "x": 21672.7,
+   "y": 102058
+  },
+  {
+   "key": "jp:queen-s-confidence",
+   "name": "Queen's Confidence",
+   "map": 1550,
+   "waypoint": "Autumn's Vale Waypoint",
+   "x": 41864.4,
+   "y": 22647.7
+  },
+  {
+   "key": "jp:treetop-beehive",
+   "name": "Treetop Beehive",
+   "map": 1550,
+   "waypoint": "Harvest Den Waypoint",
+   "x": 42924.4,
+   "y": 22729.7
+  },
+  {
+   "key": "jp:vale-brazier",
+   "name": "Vale Brazier",
+   "map": 1550,
+   "waypoint": "Hot Springs Waypoint",
+   "x": 41475.2,
+   "y": 23594.3
+  },
+  {
+   "key": "jp:traversing-the-titan",
+   "name": "Traversing the Titan",
+   "map": 1574,
+   "waypoint": "Hidden Nodule Waypoint",
+   "x": 37988.2,
+   "y": 12288.6
+  },
+  {
+   "key": "jp:birdie-benefactor",
+   "name": "Birdie Benefactor",
+   "map": 1593,
+   "waypoint": "Foothold Bivouac Waypoint",
+   "x": 8698.4,
+   "y": 59533.1
+  },
+  {
+   "key": "jp:inquest-hologram",
+   "name": "Inquest Hologram",
+   "map": 1593,
+   "waypoint": "Hunter's Camp Waypoint",
+   "x": 7748.2,
+   "y": 58054.1
+  },
+  {
+   "key": "jp:meandering-magic",
+   "name": "Meandering Magic",
+   "map": 1593,
+   "waypoint": "Hunter's Camp Waypoint",
+   "x": 7748.2,
+   "y": 58054.1
+  },
+  {
+   "key": "jp:booter-s-path",
+   "name": "'Booter's Path",
+   "map": 1595,
+   "waypoint": "Pub Canach Waypoint",
+   "x": 11173,
+   "y": 59803.2
+  },
+  {
+   "key": "jp:orb-cavern",
+   "name": "Orb Cavern",
+   "map": 1595,
+   "waypoint": "Pub Canach Waypoint",
+   "x": 11173,
+   "y": 59803.2
+  },
+  {
+   "key": "jp:soaring-copse",
+   "name": "Soaring Copse",
+   "map": 1595,
+   "waypoint": "Dark Leviathan Waypoint",
+   "x": 11740,
+   "y": 57967.3
+  },
+  {
+   "key": "jp:artificer-s-rise",
+   "name": "Artificer's Rise",
+   "map": 1622,
+   "waypoint": "Sanctum Exterior Waypoint",
+   "x": 4867.5,
+   "y": 61003.2
+  },
+  {
+   "key": "jp:munchin-moths",
+   "name": "Munchin' Moths",
+   "map": 1622,
+   "waypoint": "Temple of Abnegation Waypoint",
+   "x": 3722.9,
+   "y": 61850.8
+  },
+  {
+   "key": "jp:coleopteran-cavern",
+   "name": "Coleopteran Cavern",
+   "map": 1633,
+   "waypoint": "Doyen's Adytum Waypoint",
+   "x": 3657.8,
+   "y": 58080.6
+  },
+  {
+   "key": "jp:inquest-cache",
+   "name": "Inquest Cache",
+   "map": 1633,
+   "waypoint": "Hall of Assemblage Waypoint",
+   "x": 4953.2,
+   "y": 59329.6
+  }
+ ]
+}
