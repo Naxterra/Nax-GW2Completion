@@ -188,6 +188,18 @@ namespace Nax.Completion {
                 || kind == PointKind.HeroChallenge;
         }
 
+        internal static int CentreSearchRadius(double uiScale, PointKind kind, IconSet set) {
+            double s = uiScale / CALIBRATION_UI_SCALE;
+            switch (kind) {
+                case PointKind.Waypoint:
+                    return Scaled(WP_SEARCH, set == IconSet.WorldMap ? s * WORLD_MAP_WAYPOINT_SCALE : s);
+                case PointKind.Heart: return Scaled(HEART_SEARCH, s);
+                case PointKind.Vista: return Scaled(VISTA_SEARCH, s);
+                case PointKind.HeroChallenge: return Scaled(HC_SEARCH, s);
+                default: return Scaled(POI_SEARCH, s);
+            }
+        }
+
         /// <summary>Furthest distance from the projected position that <see cref="IsFilled"/> reads, in pixels.</summary>
         public static int Reach(double uiScale, IconSet set = IconSet.WorldMap) {
             if (set == IconSet.Compass) return CalibratedReach(uiScale);

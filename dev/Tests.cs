@@ -460,7 +460,85 @@ static class Tests {
         Check("moving_pointer_does_not_block_regular_map_job_build", builds == 1,
             "Moving to a new pointer position does not restart the already-settled geometry delay.");
     }
+    static bool MapFixtureReturnsKey(string name, List<MapRecognizer.Job> jobs, MapOverlay.Marker marker) {
+        using (var image = new System.Drawing.Bitmap(Path.Combine("dev", "testdata", "world-map", name + ".png"))) {
+            var pixels = new int[image.Width * image.Height];
+            for (int y = 0; y < image.Height; y++) for (int x = 0; x < image.Width; x++) pixels[y * image.Width + x] = image.GetPixel(x, y).ToArgb();
+            int sx = (int)Math.Round(marker.Position.X * (float)IconRecognizer.CALIBRATION_UI_SCALE);
+            int sy = (int)Math.Round(marker.Position.Y * (float)IconRecognizer.CALIBRATION_UI_SCALE);
+            return MapRecognizer.ReadPixels(jobs, pixels, image.Width, image.Height, sx - image.Width / 2,
+                sy - image.Height / 2, IconRecognizer.CALIBRATION_UI_SCALE).Any(job => job.Key == marker.Point.Key);
+        }
+    }
+    static void MapFrameEligibilityTests() {
+        const float ui = (float)IconRecognizer.CALIBRATION_UI_SCALE;
+        var screen = new Point(4000, 1600);
+        var mouse = new Point(20, 800);
+        var marker = new MapOverlay.Marker { MapId = 32,
+            Point = new CompletionPoint("poi:clear", PointKind.PointOfInterest, null, 0, 0), Position = new Vector2(600, 600) };
+        var otherFloor = new MapOverlay.Marker { MapId = 32,
+            Point = new CompletionPoint("vista:other-floor", PointKind.Vista, null, 0, 0, onDefaultFloor: false), Position = new Vector2(629, 600) };
+        var overlay = new MapOverlay();
+        var shown = new[] { marker, otherFloor };
+        overlay.SetMarkers(shown);
+        var jobs = NaxCompletionModule.RecognitionJobsForView(shown, ui, screen, mouse, 4000, 1600, key => false);
+        Check("shrunken_overlay_frame_does_not_hide_clear_game_poi", marker.Size < MapOverlay.FRAME_SIZE && MapFixtureReturnsKey("ritual-isle-filled-poi", jobs, marker),
+            "A real done POI is clear in the game-only capture; its optional overlay frame shrinks near another-floor marker.");
+        otherFloor.Position = new Vector2(601, 600); overlay.SetMarkers(shown);
+        jobs = NaxCompletionModule.RecognitionJobsForView(shown, ui, screen, mouse, 4000, 1600, key => false);
+        Check("absent_other_floor_icon_cannot_block_done_poi", overlay.AnyCrowded && MapFixtureReturnsKey("ritual-isle-filled-poi", jobs, marker),
+            "A point from another API floor has no game icon here and must not suppress the visible POI through frame crowding.");
+        var topMarker = new MapOverlay.Marker { MapId = 32, Point = marker.Point, Position = new Vector2(2000, 80) };
+        shown = new[] { topMarker, marker, otherFloor }; overlay.SetMarkers(shown);
+        jobs = NaxCompletionModule.RecognitionJobsForView(shown, ui, screen, mouse, 4000, 1600, key => false);
+        Check("uncaptured_overlay_zoom_hint_cannot_hide_done_poi", overlay.AnyCrowded && MapFixtureReturnsKey("ritual-isle-filled-poi", jobs, topMarker),
+            "Crowding elsewhere sets the overlay hint flag, but PrintWindow does not contain that Blish hint over this clear icon.");
+
+        shown = new[] { marker }; overlay.SetMarkers(shown);
+        jobs = NaxCompletionModule.RecognitionJobsForView(shown, ui, screen, mouse, 4000, 1600, key => false);
+        Check("clear_unframed_hollow_poi_stays_open", !MapFixtureReturnsKey("moorwatch-hollow-poi", jobs, marker),
+            "Making a clear game icon eligible does not turn its genuine hollow state into completion.");
+        marker.Done = true;
+        Check("map_frame_repair_preserves_already_done_filter", NaxCompletionModule.RecognitionJobsForView(shown, ui, screen, mouse, 4000, 1600, key => false).Count == 0,
+            "Already recorded points are still excluded.");
+        marker.Done = false;
+        Check("map_frame_repair_preserves_keep_open", NaxCompletionModule.RecognitionJobsForView(shown, ui, screen, mouse, 4000, 1600, key => true).Count == 0,
+            "Undo and explicit keep-open choices remain authoritative.");
+        Check("map_frame_repair_preserves_game_tooltip_exclusion", NaxCompletionModule.RecognitionJobsForView(shown, ui, screen, new Point(600, 600), 4000, 1600, key => false).Count == 0,
+            "The game's own cursor tooltip remains excluded from icon reads.");
+        marker.Position = new Vector2(100, 100);
+        Check("map_frame_repair_preserves_game_legend_exclusion", NaxCompletionModule.RecognitionJobsForView(shown, ui, screen, mouse, 4000, 1600, key => false).Count == 0,
+            "The game's real completion legend still covers these pixels.");
+        marker.Position = new Vector2(15, 600);
+        Check("map_frame_repair_preserves_capture_bounds", NaxCompletionModule.RecognitionJobsForView(shown, ui, screen, mouse, 4000, 1600, key => false).Count == 0,
+            "A capture that would reach outside the client remains ineligible.");
+        marker.Position = new Vector2(600, 600);
+        var adjacent = new MapOverlay.Marker { MapId = 32, Point = new CompletionPoint("poi:adjacent", PointKind.PointOfInterest, null, 0, 0), Position = new Vector2(604, 600) };
+        shown = new[] { marker, adjacent }; overlay.SetMarkers(shown);
+        Check("overlapping_game_icon_searches_remain_ambiguous", NaxCompletionModule.RecognitionJobsForView(shown, ui, screen, mouse, 4000, 1600, key => false).Count == 0,
+            "Two visible objectives inside the same classifier search must not receive credit from one icon.");
+        adjacent.Done = true;
+        Check("completed_neighbor_cannot_supply_another_points_icon_credit", NaxCompletionModule.RecognitionJobsForView(shown, ui, screen, mouse, 4000, 1600, key => false).Count == 0,
+            "The icon of an already recorded neighbor still makes the fresh point's search ambiguous.");
+        adjacent.Done = false;
+        Check("kept_open_neighbor_cannot_supply_another_points_icon_credit", NaxCompletionModule.RecognitionJobsForView(shown, ui, screen, mouse, 4000, 1600, key => key == adjacent.Point.Key).Count == 0,
+            "The explicit keep-open point's game icon still exists and must not be attributed to its neighbor.");
+        marker.MapId = 33; shown = new[] { marker, otherFloor }; overlay.SetMarkers(shown);
+        jobs = NaxCompletionModule.RecognitionJobsForView(shown, ui, screen, mouse, 4000, 1600, key => false);
+        Check("clear_neighboring_map_icon_keeps_owning_map_after_frame_repair", jobs.Count == 1 && jobs[0].MapId == 33 && MapFixtureReturnsKey("ritual-isle-filled-poi", jobs, marker),
+            "A clear icon on another map keeps its owning map even when a virtual frame shrinks around it.");
+        var log = new MapReadLog();
+        NaxCompletionModule.RecognitionJobsForView(shown, ui, screen, mouse, 4000, 1600, key => false, log);
+        Check("map_frame_repair_logs_clear_neighbor_and_other_floor_skip", log.Describe().Contains("map 33: 1 in view, 0 already ticked, 1 read")
+            && log.Describe().Contains("map 32: 1 in view, 0 already ticked, 0 read, 0 of them shown as done, skipped 1 on another floor"),
+            "The shared per-map logger records the corrected eligibility and retains the genuine skip reason.");
+        marker.MapId = 32; log = new MapReadLog();
+        NaxCompletionModule.RecognitionJobsForView(new[] { marker, adjacent }, ui, screen, mouse, 4000, 1600, key => false, log);
+        Check("map_frame_repair_logs_actual_overlapping_searches", log.Describe().Contains("0 read, 0 of them shown as done, skipped 2 where icon searches overlap"),
+            "The diagnostic identifies actual icon-search ambiguity instead of virtual frame size.");
+    }
     static int Main() {
+        MapFrameEligibilityTests();
         CompassEdgeRegressionTests();
         MapPointerRegressionTests();
         TooltipContextRegressionTests();

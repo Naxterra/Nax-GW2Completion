@@ -1010,7 +1010,7 @@ namespace Nax.Completion {
                 var mouse = GameService.Input.Mouse.Position;
                 string view   = $"{data.MapId}|{nearby.Count}|{center.X:F2}|{center.Y:F2}|{scale:F5}|{size.X}x{size.Y}|{uiScale:F3}";
                 string tooltipContext = $"{mouse.X},{mouse.Y}";
-                // Not while a frame is armed: its white highlight and label would sit in the copied pixels.
+                // Do not start another read while the overlay owns a manual frame interaction.
                 bool mayStart = settled
                              && _mapOverlay.OwnedHover == null
                              && GameService.Input.Keyboard.ActiveModifiers == ModifierKeys.None
@@ -1068,34 +1068,39 @@ namespace Nax.Completion {
         /// window's position is unknown, so the same view is tried again.
         /// </summary>
         private List<MapRecognizer.Job> BuildRecognitionJobs(MapOverlay.Marker[] shown, float uiScale) {
-            var jobs = new List<MapRecognizer.Job>();
             if (uiScale <= 0 || !ScreenCapture.TryGetClientSize(out int clientW, out int clientH)) return null;
+            var log = new MapReadLog();
+            var jobs = RecognitionJobsForView(shown, uiScale, _mapOverlay.Size, GameService.Input.Mouse.Position,
+                                             clientW, clientH, _store.IsKeptOpen, log);
+            _mapReadLog = log;
+            if (jobs.Count == 0) LogMapRead(log.Describe());
+            return jobs;
+        }
 
-            var   screen = _mapOverlay.Size;
-            var   mouse  = GameService.Input.Mouse.Position;
+        internal static List<MapRecognizer.Job> RecognitionJobsForView(MapOverlay.Marker[] shown, float uiScale,
+                Point screen, Point mouse, int clientW, int clientH, Func<string, bool> isKeptOpen, MapReadLog log = null) {
+            var jobs = new List<MapRecognizer.Job>();
             var hoveredHero = HeroTooltipTarget(shown, mouse);
             // Keep the whole copied square inside the game window, so nothing from another screen or window is read.
             float margin = IconRecognizer.Reach(uiScale) / uiScale + 1;
-            var   log    = new MapReadLog();
 
             foreach (var marker in shown) {
                 var point = marker.Point;
                 if (marker.Done) {
-                    log.AlreadyDone(marker.MapId);
+                    log?.AlreadyDone(marker.MapId);
                     continue;
                 }
 
                 string skip = !point.OnDefaultFloor                             ? "on another floor"
                             : !IconRecognizer.CanRecognise(point.Kind)          ? "of a kind not read from icons"
-                            : _store.IsKeptOpen(point.Key)                      ? "kept open"
-                            // A shrunken frame sits on the icon's edge and would be read along with it.
-                            : marker.Size < MapOverlay.FRAME_SIZE               ? "too close to another point"
+                            : isKeptOpen(point.Key)                             ? "kept open"
                             : marker.Position.X < margin || marker.Position.Y < margin
                            || marker.Position.X > screen.X - margin || marker.Position.Y > screen.Y - margin
                                                                                 ? "at the screen edge"
-                            : IsCoveredByMapChrome(marker.Position, screen, _mapOverlay.AnyCrowded)
+                            // PrintWindow renders the game alone, without Blish frames or its zoom hint.
+                            : IsCoveredByMapChrome(marker.Position, screen, false)
                                                                                 ? "under the map's own panels"
-                            : marker != hoveredHero && IsCoveredOnMap(marker.Position, screen, mouse, _mapOverlay.AnyCrowded)
+                            : marker != hoveredHero && IsCoveredOnMap(marker.Position, screen, mouse, false)
                                                                                 ? "near the cursor"
                             : null;
 
@@ -1103,20 +1108,33 @@ namespace Nax.Completion {
                 int py = (int)Math.Round(marker.Position.Y * uiScale);
                 if (skip == null && (px < 0 || py < 0 || px >= clientW || py >= clientH)) skip = "outside the game window";
 
+                if (skip == null && marker != hoveredHero && AmbiguousMapIcon(marker, shown, px, py, uiScale)) {
+                    skip = "where icon searches overlap";
+                }
                 if (skip != null) {
-                    log.Skipped(marker.MapId, skip);
+                    log?.Skipped(marker.MapId, skip);
                     continue;
                 }
 
-                log.Read(marker.MapId);
+                log?.Read(marker.MapId);
                 jobs.Add(new MapRecognizer.Job { MapId = marker.MapId, Key = point.Key, Kind = point.Kind,
                                                 ScreenX = px, ScreenY = py, HeroTooltip = marker == hoveredHero });
             }
 
-            // With nothing to read no read runs, so this view is logged now. Otherwise it is logged with the result.
-            _mapReadLog = log;
-            if (jobs.Count == 0) LogMapRead(log.Describe());
             return jobs;
+        }
+
+        private static bool AmbiguousMapIcon(MapOverlay.Marker marker, MapOverlay.Marker[] shown, int x, int y, double uiScale) {
+            int reach = IconRecognizer.CentreSearchRadius(uiScale, marker.Point.Kind, IconSet.WorldMap);
+            foreach (var other in shown) {
+                if (other == marker || !other.Point.OnDefaultFloor || !IconRecognizer.CanRecognise(other.Point.Kind)) continue;
+                int ox = (int)Math.Round(other.Position.X * uiScale), oy = (int)Math.Round(other.Position.Y * uiScale);
+                // Already-recorded and kept-open points still have game icons. A pixel of rounding at each centre
+                // is included so overlapping search areas cannot attribute one icon to two different objectives.
+                int separation = reach + IconRecognizer.CentreSearchRadius(uiScale, other.Point.Kind, IconSet.WorldMap) + 2;
+                if (Math.Abs(x - ox) <= separation && Math.Abs(y - oy) <= separation) return true;
+            }
+            return false;
         }
 
         /// <summary>
