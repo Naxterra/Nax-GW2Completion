@@ -139,6 +139,10 @@ namespace Nax.Completion {
         private readonly HashSet<int>                                      _nearbyLoading      = new HashSet<int>();
         private readonly object                                            _nearbyLock         = new object();
 
+        // What the world map read in flight was built from, per map, and the last line logged about it.
+        private MapReadLog _mapReadLog;
+        private string     _loggedMapRead;
+
         private CompletionPoint _target;
         private string          _lastSkippedKey;
 
@@ -967,6 +971,7 @@ namespace Nax.Completion {
                     _mapOverlay.CaptureFrameState();
                 }
                 _recognizer.Reset();
+                _loggedMapRead = null;   // the next opening of the map logs its first read again
                 return;
             }
 
@@ -1012,7 +1017,10 @@ namespace Nax.Completion {
                              && GameService.GameIntegration.Gw2Instance.Gw2HasFocus;
 
                 var found = _recognizer.Update(view, GameService.Gw2Mumble.Tick, mayStart, () => BuildRecognitionJobs(shown, uiScale), uiScale, tooltipContext);
-                if (found != null) ApplyRecognised(found.ToLookup(j => j.MapId, j => j.Key), "world map");
+                if (found != null) {
+                    if (_mapReadLog != null) LogMapRead(_mapReadLog.Describe(found.Select(j => j.MapId)));
+                    ApplyRecognised(found.ToLookup(j => j.MapId, j => j.Key), "world map");
+                }
             } else {
                 _recognizer.Reset();
             }
@@ -1068,31 +1076,58 @@ namespace Nax.Completion {
             var hoveredHero = HeroTooltipTarget(shown, mouse);
             // Keep the whole copied square inside the game window, so nothing from another screen or window is read.
             float margin = IconRecognizer.Reach(uiScale) / uiScale + 1;
+            var   log    = new MapReadLog();
 
             foreach (var marker in shown) {
                 var point = marker.Point;
-                if (marker.Done
-                 || !point.OnDefaultFloor
-                 || !IconRecognizer.CanRecognise(point.Kind)
-                 || _store.IsKeptOpen(point.Key)
-                 // A shrunken frame sits on the icon's edge and would be read along with it.
-                 || marker.Size < MapOverlay.FRAME_SIZE
-                 || marker.Position.X < margin || marker.Position.Y < margin
-                 || marker.Position.X > screen.X - margin || marker.Position.Y > screen.Y - margin
-                 || IsCoveredByMapChrome(marker.Position, screen, _mapOverlay.AnyCrowded)
-                 || (marker != hoveredHero && IsCoveredOnMap(marker.Position, screen, mouse, _mapOverlay.AnyCrowded))) {
+                if (marker.Done) {
+                    log.AlreadyDone(marker.MapId);
                     continue;
                 }
 
+                string skip = !point.OnDefaultFloor                             ? "on another floor"
+                            : !IconRecognizer.CanRecognise(point.Kind)          ? "of a kind not read from icons"
+                            : _store.IsKeptOpen(point.Key)                      ? "kept open"
+                            // A shrunken frame sits on the icon's edge and would be read along with it.
+                            : marker.Size < MapOverlay.FRAME_SIZE               ? "too close to another point"
+                            : marker.Position.X < margin || marker.Position.Y < margin
+                           || marker.Position.X > screen.X - margin || marker.Position.Y > screen.Y - margin
+                                                                                ? "at the screen edge"
+                            : IsCoveredByMapChrome(marker.Position, screen, _mapOverlay.AnyCrowded)
+                                                                                ? "under the map's own panels"
+                            : marker != hoveredHero && IsCoveredOnMap(marker.Position, screen, mouse, _mapOverlay.AnyCrowded)
+                                                                                ? "near the cursor"
+                            : null;
+
                 int px = (int)Math.Round(marker.Position.X * uiScale);
                 int py = (int)Math.Round(marker.Position.Y * uiScale);
-                if (px < 0 || py < 0 || px >= clientW || py >= clientH) continue;
+                if (skip == null && (px < 0 || py < 0 || px >= clientW || py >= clientH)) skip = "outside the game window";
 
+                if (skip != null) {
+                    log.Skipped(marker.MapId, skip);
+                    continue;
+                }
+
+                log.Read(marker.MapId);
                 jobs.Add(new MapRecognizer.Job { MapId = marker.MapId, Key = point.Key, Kind = point.Kind,
                                                 ScreenX = px, ScreenY = py, HeroTooltip = marker == hoveredHero });
             }
 
+            // With nothing to read no read runs, so this view is logged now. Otherwise it is logged with the result.
+            _mapReadLog = log;
+            if (jobs.Count == 0) LogMapRead(log.Describe());
             return jobs;
+        }
+
+        /// <summary>
+        /// Logs what one still world map view read, per map. The same text is not logged twice in a row, so a map left
+        /// open does not fill the log, but every new view (panning, zooming, a neighbouring map loading) gets a line.
+        /// </summary>
+        private void LogMapRead(string summary) {
+            if (summary == _loggedMapRead) return;
+            _loggedMapRead = summary;
+            // The zoom shows whether the game draws icons at all: zoomed far out it hides them.
+            Logger.Info("World map read at map scale {scale:F2}: {summary}", GameService.Gw2Mumble.UI.MapScale, summary);
         }
 
         /// <summary>

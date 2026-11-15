@@ -1150,6 +1150,27 @@ static class Tests {
                                                          1100, 1000, 1, new Point(1000, 800));
         Check("untracked_kind_on_a_neighbouring_map_gets_no_frame", untracked.Count == 1 && untracked[0].Point.Key == "poi:9", $"{untracked.Count} frames");
 
+        // The world map read log says per map what happened to the points in view
+        var readLog = new MapReadLog();
+        readLog.AlreadyDone(32);
+        readLog.Read(32);
+        readLog.Read(32);
+        readLog.Skipped(32, "near the cursor");
+        readLog.Skipped(19, "at the screen edge");
+        readLog.Skipped(19, "under the map's own panels");
+        readLog.Skipped(19, "at the screen edge");
+        readLog.Read(19);
+        string described = readLog.Describe(new[] { 32 });
+        Check("world_map_read_log_lists_the_current_map_first_with_its_counts_and_skip_reasons",
+              described == "map 32: 4 in view, 1 already ticked, 2 read, 1 of them shown as done, skipped 1 near the cursor"
+                         + " | map 19: 4 in view, 0 already ticked, 1 read, 0 of them shown as done, skipped 2 at the screen edge, 1 under the map's own panels",
+              described);
+        var skippedOnly = new MapReadLog();
+        skippedOnly.Skipped(19, "on another floor");
+        Check("world_map_read_log_reports_a_neighbouring_map_where_nothing_could_be_read",
+              skippedOnly.Describe() == "map 19: 1 in view, 0 already ticked, 0 read, 0 of them shown as done, skipped 1 on another floor", skippedOnly.Describe());
+        Check("world_map_read_log_says_so_when_no_tracked_point_is_in_view", new MapReadLog().Describe() == "no tracked points in view", "");
+
         RecognitionLifecycleTests();
         RouteLifecycleTests();
         RouteGeometryTests();
