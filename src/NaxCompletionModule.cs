@@ -1005,7 +1005,7 @@ namespace Nax.Completion {
                 var mouse = GameService.Input.Mouse.Position;
                 string view   = $"{data.MapId}|{nearby.Count}|{center.X:F2}|{center.Y:F2}|{scale:F5}|{size.X}x{size.Y}|{uiScale:F3}";
                 string tooltipContext = $"{mouse.X},{mouse.Y}";
-                // Not while a frame is armed: its white highlight and label would sit in the copied pixels.
+                // Do not start another read while the overlay owns a manual frame interaction.
                 bool mayStart = settled
                              && _mapOverlay.OwnedHover == null
                              && GameService.Input.Keyboard.ActiveModifiers == ModifierKeys.None
@@ -1060,11 +1060,14 @@ namespace Nax.Completion {
         /// window's position is unknown, so the same view is tried again.
         /// </summary>
         private List<MapRecognizer.Job> BuildRecognitionJobs(MapOverlay.Marker[] shown, float uiScale) {
-            var jobs = new List<MapRecognizer.Job>();
             if (uiScale <= 0 || !ScreenCapture.TryGetClientSize(out int clientW, out int clientH)) return null;
+            return RecognitionJobsForView(shown, uiScale, _mapOverlay.Size, GameService.Input.Mouse.Position,
+                                          clientW, clientH, _store.IsKeptOpen);
+        }
 
-            var   screen = _mapOverlay.Size;
-            var   mouse  = GameService.Input.Mouse.Position;
+        internal static List<MapRecognizer.Job> RecognitionJobsForView(MapOverlay.Marker[] shown, float uiScale,
+                Point screen, Point mouse, int clientW, int clientH, Func<string, bool> isKeptOpen) {
+            var jobs = new List<MapRecognizer.Job>();
             var hoveredHero = HeroTooltipTarget(shown, mouse);
             // Keep the whole copied square inside the game window, so nothing from another screen or window is read.
             float margin = IconRecognizer.Reach(uiScale) / uiScale + 1;
@@ -1074,13 +1077,12 @@ namespace Nax.Completion {
                 if (marker.Done
                  || !point.OnDefaultFloor
                  || !IconRecognizer.CanRecognise(point.Kind)
-                 || _store.IsKeptOpen(point.Key)
-                 // A shrunken frame sits on the icon's edge and would be read along with it.
-                 || marker.Size < MapOverlay.FRAME_SIZE
+                 || isKeptOpen(point.Key)
                  || marker.Position.X < margin || marker.Position.Y < margin
                  || marker.Position.X > screen.X - margin || marker.Position.Y > screen.Y - margin
-                 || IsCoveredByMapChrome(marker.Position, screen, _mapOverlay.AnyCrowded)
-                 || (marker != hoveredHero && IsCoveredOnMap(marker.Position, screen, mouse, _mapOverlay.AnyCrowded))) {
+                 // PrintWindow renders the game alone. Blish frames and its zoom hint are not in these pixels.
+                 || IsCoveredByMapChrome(marker.Position, screen, false)
+                 || (marker != hoveredHero && IsCoveredOnMap(marker.Position, screen, mouse, false))) {
                     continue;
                 }
 
@@ -1088,11 +1090,26 @@ namespace Nax.Completion {
                 int py = (int)Math.Round(marker.Position.Y * uiScale);
                 if (px < 0 || py < 0 || px >= clientW || py >= clientH) continue;
 
+                if (marker != hoveredHero && AmbiguousMapIcon(marker, shown, px, py, uiScale)) continue;
+
                 jobs.Add(new MapRecognizer.Job { MapId = marker.MapId, Key = point.Key, Kind = point.Kind,
                                                 ScreenX = px, ScreenY = py, HeroTooltip = marker == hoveredHero });
             }
 
             return jobs;
+        }
+
+        private static bool AmbiguousMapIcon(MapOverlay.Marker marker, MapOverlay.Marker[] shown, int x, int y, double uiScale) {
+            int reach = IconRecognizer.CentreSearchRadius(uiScale, marker.Point.Kind, IconSet.WorldMap);
+            foreach (var other in shown) {
+                if (other == marker || !other.Point.OnDefaultFloor || !IconRecognizer.CanRecognise(other.Point.Kind)) continue;
+                int ox = (int)Math.Round(other.Position.X * uiScale), oy = (int)Math.Round(other.Position.Y * uiScale);
+                // Already-recorded and kept-open points still have game icons. A pixel of rounding at each centre
+                // is included so overlapping search areas cannot attribute one icon to two different objectives.
+                int separation = reach + IconRecognizer.CentreSearchRadius(uiScale, other.Point.Kind, IconSet.WorldMap) + 2;
+                if (Math.Abs(x - ox) <= separation && Math.Abs(y - oy) <= separation) return true;
+            }
+            return false;
         }
 
         /// <summary>

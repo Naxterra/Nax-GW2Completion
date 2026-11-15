@@ -53,6 +53,8 @@ Following a route: walk into the puzzle. The next three spots appear in the worl
 
 Everything else is in the module settings: which kinds to track, the auto-tick radius, recognition on or off, and the optional frames on the world map (off by default; with them on, holding Alt and clicking a frame switches a point by hand). Turning off puzzle tracking stops its guidance and automatic completion. Hiding the arrow panel hides the route drawing too, while completion from following a tracked route continues. Disconnected route sections retain their notes and target rings, with no dashed line across the transition; gaps longer than 30 m also have no connecting line.
 
+Recognition reads the game window independently of the optional overlay frames. Small frames and the overlay's zoom hint do not hide clear game icons from recognition. Objectives whose icon searches overlap remain excluded to avoid giving two points credit from one icon.
+
 ## Limits
 
 - The game API does not say what a character has explored. Hero challenges are read from icons because the API endpoint has been unreliable. Compass recognition covers the map you are on; the world map also reads visible neighbouring maps in the bundled index. Covered icons, icons near the cursor or the compass centre, and crowded icons are skipped until they are readable.
