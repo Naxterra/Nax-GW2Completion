@@ -139,6 +139,10 @@ namespace Nax.Completion {
         private readonly HashSet<int>                                      _nearbyLoading      = new HashSet<int>();
         private readonly object                                            _nearbyLock         = new object();
 
+        // What the world map read in flight was built from, per map, and the last line logged about it.
+        private MapReadLog _mapReadLog;
+        private string     _loggedMapRead;
+
         private CompletionPoint _target;
         private string          _lastSkippedKey;
 
@@ -967,6 +971,7 @@ namespace Nax.Completion {
                     _mapOverlay.CaptureFrameState();
                 }
                 _recognizer.Reset();
+                _loggedMapRead = null;   // the next opening of the map logs its first read again
                 return;
             }
 
@@ -1012,7 +1017,10 @@ namespace Nax.Completion {
                              && GameService.GameIntegration.Gw2Instance.Gw2HasFocus;
 
                 var found = _recognizer.Update(view, GameService.Gw2Mumble.Tick, mayStart, () => BuildRecognitionJobs(shown, uiScale), uiScale, tooltipContext);
-                if (found != null) ApplyRecognised(found.ToLookup(j => j.MapId, j => j.Key), "world map");
+                if (found != null) {
+                    if (_mapReadLog != null) LogMapRead(_mapReadLog.Describe(found.Select(j => j.MapId)));
+                    ApplyRecognised(found.ToLookup(j => j.MapId, j => j.Key), "world map");
+                }
             } else {
                 _recognizer.Reset();
             }
@@ -1061,12 +1069,16 @@ namespace Nax.Completion {
         /// </summary>
         private List<MapRecognizer.Job> BuildRecognitionJobs(MapOverlay.Marker[] shown, float uiScale) {
             if (uiScale <= 0 || !ScreenCapture.TryGetClientSize(out int clientW, out int clientH)) return null;
-            return RecognitionJobsForView(shown, uiScale, _mapOverlay.Size, GameService.Input.Mouse.Position,
-                                          clientW, clientH, _store.IsKeptOpen);
+            var log = new MapReadLog();
+            var jobs = RecognitionJobsForView(shown, uiScale, _mapOverlay.Size, GameService.Input.Mouse.Position,
+                                             clientW, clientH, _store.IsKeptOpen, log);
+            _mapReadLog = log;
+            if (jobs.Count == 0) LogMapRead(log.Describe());
+            return jobs;
         }
 
         internal static List<MapRecognizer.Job> RecognitionJobsForView(MapOverlay.Marker[] shown, float uiScale,
-                Point screen, Point mouse, int clientW, int clientH, Func<string, bool> isKeptOpen) {
+                Point screen, Point mouse, int clientW, int clientH, Func<string, bool> isKeptOpen, MapReadLog log = null) {
             var jobs = new List<MapRecognizer.Job>();
             var hoveredHero = HeroTooltipTarget(shown, mouse);
             // Keep the whole copied square inside the game window, so nothing from another screen or window is read.
@@ -1074,24 +1086,37 @@ namespace Nax.Completion {
 
             foreach (var marker in shown) {
                 var point = marker.Point;
-                if (marker.Done
-                 || !point.OnDefaultFloor
-                 || !IconRecognizer.CanRecognise(point.Kind)
-                 || isKeptOpen(point.Key)
-                 || marker.Position.X < margin || marker.Position.Y < margin
-                 || marker.Position.X > screen.X - margin || marker.Position.Y > screen.Y - margin
-                 // PrintWindow renders the game alone. Blish frames and its zoom hint are not in these pixels.
-                 || IsCoveredByMapChrome(marker.Position, screen, false)
-                 || (marker != hoveredHero && IsCoveredOnMap(marker.Position, screen, mouse, false))) {
+                if (marker.Done) {
+                    log?.AlreadyDone(marker.MapId);
                     continue;
                 }
 
+                string skip = !point.OnDefaultFloor                             ? "on another floor"
+                            : !IconRecognizer.CanRecognise(point.Kind)          ? "of a kind not read from icons"
+                            : isKeptOpen(point.Key)                             ? "kept open"
+                            : marker.Position.X < margin || marker.Position.Y < margin
+                           || marker.Position.X > screen.X - margin || marker.Position.Y > screen.Y - margin
+                                                                                ? "at the screen edge"
+                            // PrintWindow renders the game alone, without Blish frames or its zoom hint.
+                            : IsCoveredByMapChrome(marker.Position, screen, false)
+                                                                                ? "under the map's own panels"
+                            : marker != hoveredHero && IsCoveredOnMap(marker.Position, screen, mouse, false)
+                                                                                ? "near the cursor"
+                            : null;
+
                 int px = (int)Math.Round(marker.Position.X * uiScale);
                 int py = (int)Math.Round(marker.Position.Y * uiScale);
-                if (px < 0 || py < 0 || px >= clientW || py >= clientH) continue;
+                if (skip == null && (px < 0 || py < 0 || px >= clientW || py >= clientH)) skip = "outside the game window";
 
-                if (marker != hoveredHero && AmbiguousMapIcon(marker, shown, px, py, uiScale)) continue;
+                if (skip == null && marker != hoveredHero && AmbiguousMapIcon(marker, shown, px, py, uiScale)) {
+                    skip = "where icon searches overlap";
+                }
+                if (skip != null) {
+                    log?.Skipped(marker.MapId, skip);
+                    continue;
+                }
 
+                log?.Read(marker.MapId);
                 jobs.Add(new MapRecognizer.Job { MapId = marker.MapId, Key = point.Key, Kind = point.Kind,
                                                 ScreenX = px, ScreenY = py, HeroTooltip = marker == hoveredHero });
             }
@@ -1110,6 +1135,17 @@ namespace Nax.Completion {
                 if (Math.Abs(x - ox) <= separation && Math.Abs(y - oy) <= separation) return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Logs what one still world map view read, per map. The same text is not logged twice in a row, so a map left
+        /// open does not fill the log, but every new view (panning, zooming, a neighbouring map loading) gets a line.
+        /// </summary>
+        private void LogMapRead(string summary) {
+            if (summary == _loggedMapRead) return;
+            _loggedMapRead = summary;
+            // The zoom shows whether the game draws icons at all: zoomed far out it hides them.
+            Logger.Info("World map read at map scale {scale:F2}: {summary}", GameService.Gw2Mumble.UI.MapScale, summary);
         }
 
         /// <summary>
